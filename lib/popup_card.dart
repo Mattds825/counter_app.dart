@@ -1,3 +1,4 @@
+import 'package:counters/counter_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
@@ -42,9 +43,27 @@ class _PopUpCardState extends State<PopUpCard>
           scale: scaleAnimation,
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 140.0),
-            child: Neumorphic(
-              style: getStye(widget.colorMode),
-              child: widget.cardWidget,
+            child: Stack(
+              children: [
+                Neumorphic(
+                  style: getStye(widget.colorMode),
+                  child: widget.cardWidget,
+                ),
+                Positioned(
+                  top: 20.0,
+                  right: 20.0,
+                  child: GestureDetector(
+                    child: NeumorphicText(
+                      'Delete',
+                      style: getStye(widget.colorMode),
+                      textStyle: NeumorphicTextStyle(fontSize: 24.0, fontWeight: FontWeight.w900),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context, Options.delete);
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -52,3 +71,5 @@ class _PopUpCardState extends State<PopUpCard>
     );
   }
 }
+
+enum Options { delete, none }

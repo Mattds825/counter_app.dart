@@ -3,6 +3,7 @@ import 'dart:core';
 import 'package:counters/constants.dart';
 import 'package:counters/counter.dart';
 import 'package:counters/counter_widget.dart';
+import 'package:counters/db_helper.dart';
 import 'package:counters/popup_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
@@ -18,9 +19,12 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  Database database;
+
   @override
   void initState() {
     super.initState();
+    database = Database();
     createCounterList(widget.colorMode);
   }
 
@@ -50,7 +54,7 @@ class _MainScreenState extends State<MainScreen> {
                                 cardWidget: widget.counterList[index]
                                     .getCounterWidget(),
                               );
-                            });
+                            }).then((value) => deleteCounter(value, index));
                       },
                       child: Container(
                         padding: EdgeInsets.all(10.0),
@@ -101,9 +105,27 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  void deleteCounter(dynamic value, int index) {
+    if (value == Options.delete) {
+      print('deleting');
+      setState(() {
+        widget.counterList.removeAt(index);
+        widget.listSize--;
+      });
+    }
+  }
+
   void createCounterList(ColorMode colorMode) {
-    widget.counterList = List.generate(5, (index) => Counter(index, colorMode));
-    widget.listSize = widget.counterList.length + 2;
+    if (database.getCounterNum(0) == null) {
+      widget.counterList =
+          List.generate(5, (index) => Counter(index, colorMode));
+      widget.counterList.forEach((Counter counter) {
+        database.addCounter(counter.id);
+      });
+      widget.listSize = widget.counterList.length + 2;
+    }else{
+      
+    }
   }
 
   void addbutton(ColorMode colorMode) {
