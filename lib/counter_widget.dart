@@ -1,6 +1,8 @@
 import 'package:counters/counter.dart';
+import 'package:counters/db_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:sqflite/sqlite_api.dart';
 
 import 'constants.dart';
 
@@ -11,9 +13,22 @@ class CounterWidget extends StatefulWidget {
 
   @override
   _CounterWidget createState() => _CounterWidget();
+
+  void changeColor(ColorMode mode){
+    colorMode = mode;
+  }
 }
 
 class _CounterWidget extends State<CounterWidget> {
+
+  DatabaseHelper database;
+
+  @override
+  void initState() { 
+    super.initState();
+    database = DatabaseHelper();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Neumorphic(
@@ -25,9 +40,10 @@ class _CounterWidget extends State<CounterWidget> {
               child: NeumorphicIconButton(
                 colorMode: widget.colorMode,
                 icon: Icons.add,
-                onTap: () {
+                onTap: () {database.updateItem(widget.counterClass);
                   setState(() {
                     widget.counterClass.countAmount++;
+                    database.updateItem(widget.counterClass);
                   });
                 },
               ),
@@ -51,6 +67,7 @@ class _CounterWidget extends State<CounterWidget> {
                     setState(
                       () {
                         widget.counterClass.countAmount--;
+                        database.updateItem(widget.counterClass);
                       },
                     );
                   }

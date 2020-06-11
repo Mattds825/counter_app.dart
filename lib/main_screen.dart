@@ -11,7 +11,7 @@ import 'package:vibrate/vibrate.dart';
 
 class MainScreen extends StatefulWidget {
   List<Counter> counterList = List();
-  int listSize;
+  int listSize = 2;
   ColorMode colorMode = ColorMode.black;
 
   @override
@@ -19,12 +19,12 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  Database database;
+  DatabaseHelper database;
 
   @override
   void initState() {
     super.initState();
-    database = Database();
+    database = DatabaseHelper();
     createCounterList(widget.colorMode);
   }
 
@@ -66,7 +66,6 @@ class _MainScreenState extends State<MainScreen> {
                           padding: EdgeInsets.all(10.0),
                           child: AddButton(() {
                             setState(() {
-                              print('adding');
                               addbutton(widget.colorMode);
                               //createCounterList(widget.colorMode);
                             });
@@ -99,38 +98,50 @@ class _MainScreenState extends State<MainScreen> {
       case ColorMode.white:
         return klColor2;
         break;
-      case ColorMode.green:
-        // TODO: Handle this case.
-        break;
     }
   }
 
-  void deleteCounter(dynamic value, int index) {
+  void deleteCounter(dynamic value, int index) async {
     if (value == Options.delete) {
       print('deleting');
-      setState(() {
-        widget.counterList.removeAt(index);
-        widget.listSize--;
+      database.deleteItem(index).then((_) {
+        setState(() {
+          widget.counterList.removeAt(index);
+          widget.listSize--;
+        });
       });
     }
   }
 
-  void createCounterList(ColorMode colorMode) {
-    if (database.getCounterNum(0) == null) {
-      widget.counterList =
-          List.generate(5, (index) => Counter(index, colorMode));
-      widget.counterList.forEach((Counter counter) {
-        database.addCounter(counter.id);
+  void createCounterList(ColorMode colorMode) async {
+    widget.listSize = 2;
+    widget.counterList.clear();
+    if (await database.getCount() > 0) {
+      List items = await database.getItems();
+      items.forEach((item) {
+        Counter it = Counter.map(item);
+        it.counterWdiget.changeColor(colorMode);
+        setState(() {
+          widget.counterList.add(it);
+          widget.listSize++;
+        });
       });
-      widget.listSize = widget.counterList.length + 2;
-    }else{
-      
+    } else {
+      Counter item = Counter();
+      int saveItemId = await database.saveItem(item);
+      Counter addedItem = await database.getItem(saveItemId);
+      addedItem.counterWdiget.changeColor(colorMode);
+      widget.counterList.add(addedItem);
+      widget.listSize++;
+      setState(() {});
     }
   }
 
-  void addbutton(ColorMode colorMode) {
-    widget.counterList.add(Counter(widget.counterList.length, colorMode));
-    widget.listSize++;
+  void addbutton(ColorMode colorMode) async {
+    Counter item = Counter();
+    int saveItemId = await database.saveItem(item);
+    Counter addedItem = await database.getItem(saveItemId);
+    createCounterList(colorMode);
   }
 }
 
